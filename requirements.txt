@@ -7,7 +7,6 @@ openpyxl>=3.1.0
 # chat sigue funcionando solo con texto, sin errores).
 pyttsx3>=2.90
 SpeechRecognition>=3.10.0
-PyAudio>=0.2.13
 
 # IA Generativa (opcionales)
 google-genai>=0.1.0
