@@ -1,0 +1,21 @@
+# Datos generados por el programa (contienen fotos, DB y credenciales SMTP)
+data/acceso.sqlite3
+data/settings.json
+data/rostros/
+data/modelo_lbph.yml
+reportes/*.xlsx
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Credenciales privadas de Google Cloud API
+credentials.json
+token.json
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+

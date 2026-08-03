@@ -1,0 +1,27 @@
+opencv-contrib-python>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+openpyxl>=3.1.0
+
+# Asistente conversacional: voz (opcionales - si no se instalan, el
+# chat sigue funcionando solo con texto, sin errores).
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+PyAudio>=0.2.13
+
+# IA Generativa (opcionales)
+google-genai>=0.1.0
+ollama>=0.1.0
+
+# SDK de Google Workspace (Google Drive API v3)
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.1
+google-auth-oauthlib>=1.1.0
+
+# Servidor Web (FastAPI / Uvicorn)
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
+
+
+

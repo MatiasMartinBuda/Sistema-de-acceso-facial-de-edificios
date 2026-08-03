@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema Inteligente de Acceso Residencial por Reconocimiento Facial e IA Generativa.">
+  <title>Sistema Inteligente de Acceso Residencial</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- MODAL PANTALLA DE INICIO DE SESIÓN / REGISTRO (AUTH) -->
+  <div id="auth-overlay" class="modal-overlay active" style="z-index: 10000;">
+    <div class="card" style="width: 90%; max-width: 420px; text-align: center; border: 1px solid var(--accent-green); box-shadow: 0 0 40px var(--accent-green-glow);">
+      <h2 style="margin-bottom: 5px; color: #6ee7b7;">🏢 Control de Acceso</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px;">Ingresá tus credenciales para acceder al sistema</p>
+
+      <!-- Formulario Login -->
+      <form id="form-login" onsubmit="loginApp(event)" style="display: flex; flex-direction: column; gap: 12px;">
+        <input type="text" id="login-username" placeholder="Nombre de usuario" required>
+        <input type="password" id="login-password" placeholder="Contraseña" required>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 5px;">🔑 Iniciar Sesión</button>
+        <p style="font-size: 0.85rem; margin-top: 10px; color: var(--text-sub);">
+          ¿No tenés cuenta? <a href="#" onclick="toggleAuthForm('register')" style="color: #93c5fd; text-decoration: underline;">Registrar Administrador</a>
+        </p>
+      </form>
+
+      <!-- Formulario Registro Administrador -->
+      <form id="form-register" onsubmit="registrarApp(event)" style="display: none; flex-direction: column; gap: 12px;">
+        <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
+        <input type="text" id="reg-username" placeholder="Usuario (ej. admin)" required>
+        <input type="password" id="reg-password" placeholder="Contraseña" required>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 5px; background: linear-gradient(135deg, var(--accent-blue), #2563eb);">👤 Crear Cuenta Admin</button>
+        <p style="font-size: 0.85rem; margin-top: 10px; color: var(--text-sub);">
+          ¿Ya tenés cuenta? <a href="#" onclick="toggleAuthForm('login')" style="color: #93c5fd; text-decoration: underline;">Iniciar Sesión</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <header style="position: relative;">
+      <div id="user-session-bar" style="position: absolute; right: 0; top: 0; display: flex; align-items: center; gap: 10px;">
+        <span id="lbl-user-name" style="font-size: 0.85rem; color: #a7f3d0; background: rgba(16,185,129,0.15); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--accent-green);">👤 Admin</span>
+        <button onclick="logoutApp()" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">Cerrar Sesión</button>
+      </div>
+      <h1>Sistema Inteligente de Acceso Residencial</h1>
+      <p>Reconocimiento Facial LBPH | Prueba de Vida | IA Generativa & WhatsApp</p>
+    </header>
+
+    <!-- BARRA CON LOS 8 MÓDULOS PRINCIPALES DE LA APLICACIÓN -->
+    <nav class="tabs-nav" aria-label="Menú principal de 8 módulos">
+      <button class="tab-btn active" onclick="switchTab('tab-totem', this)">1. 📹 Reconocimiento en Vivo</button>
+      <button class="tab-btn" onclick="switchTab('tab-enrolar', this)">2. 👤 Registrar Persona</button>
+      <button class="tab-btn" onclick="switchTab('tab-agregar-fotos', this)">3. 📸 Agregar Fotos</button>
+      <button class="tab-btn" onclick="switchTab('tab-usuarios', this)">4. 👥 Usuarios Enrolados</button>
+      <button class="tab-btn" onclick="descargarReporteExcel()">5. 📊 Generar Excel (.xlsx)</button>
+      <button class="tab-btn" onclick="sincronizarDrive()">6. ☁️ Respaldar en Drive</button>
+      <button class="tab-btn" onclick="switchTab('tab-config', this)">7. ⚙️ Configuración</button>
+      <button class="tab-btn" onclick="switchTab('tab-admin', this)">8. 🛡️ Asistente IA</button>
+    </nav>
+
+    <!-- MÓDULO 1: TÓTEM EN VIVO Y RECONOCIMIENTO -->
+    <section id="tab-totem" class="tab-content active">
+      <div class="totem-grid">
+        
+        <!-- Cámara Web en Vivo -->
+        <div class="card">
+          <div id="status-badge" class="status-badge searching">
+            <span class="dot">●</span> BUSCANDO ROSTRO...
+          </div>
+          
+          <div class="webcam-container">
+            <video id="webcam-video" autoplay playsinline muted></video>
+            <div class="scan-overlay"></div>
+          </div>
+
+          <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="color: var(--text-sub); font-size: 0.85rem;">Prueba de Vida (Parpadeo):</span>
+              <strong id="lbl-liveness" style="color: var(--accent-amber); margin-left: 5px;">Requerido</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-sub); font-size: 0.85rem;">Confianza:</span>
+              <strong id="lbl-score" style="color: #6ee7b7; margin-left: 5px;">0%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chatbot Recepción e Integración WhatsApp -->
+        <div class="card chat-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1.1rem;">💬 Asistente de Recepción</h3>
+            <button onclick="solicitarWhatsappModal()" class="btn" style="background: #25D366; color: #000; font-size: 0.8rem; padding: 6px 10px; font-weight: 800;">📱 WhatsApp Propietario</button>
+          </div>
+          <div id="chat-logs" class="chat-logs">
+            <div class="chat-msg bot">¡Hola! Bienvenido al edificio. Muestra tu rostro a la cámara para ingresar o dime si vienes de visita.</div>
+          </div>
+          <form class="chat-input-box" onsubmit="enviarMensajeChat(event)">
+            <input type="text" id="chat-input" placeholder="Responde aquí (ej. residente, visita, 4B)..." required>
+            <button type="submit" class="btn">Enviar</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MÓDULO 2: REGISTRAR NUEVA PERSONA -->
+    <section id="tab-enrolar" class="tab-content">
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <h2 style="margin-bottom: 15px;">👤 Registrar Nueva Persona</h2>
+        <form onsubmit="enrolarPersona(event)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Nombre:</label>
+              <input type="text" id="enrol-nombre" placeholder="Juan" required>
+            </div>
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Apellido:</label>
+              <input type="text" id="enrol-apellido" placeholder="Pérez" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Departamento:</label>
+              <input type="text" id="enrol-depto" placeholder="4B" required>
+            </div>
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Código PIN:</label>
+              <input type="password" id="enrol-pin" placeholder="1234">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Celular / WhatsApp:</label>
+              <input type="text" id="enrol-telefono" placeholder="+5491112345678">
+            </div>
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-sub);">Email:</label>
+              <input type="email" id="enrol-email" placeholder="correo@ejemplo.com">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.85rem; color: var(--text-sub);">Categoría:</label>
+            <select id="enrol-categoria">
+              <option value="propietario">Propietario</option>
+              <option value="inquilino">Inquilino</option>
+              <option value="administrador">Administrador</option>
+              <option value="visita_frecuente">Visita Frecuente</option>
+            </select>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
+            <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;">Capturando fotos de rostro desde la cámara web...</p>
+            <div style="width: 100%; background: #1e293b; height: 10px; border-radius: 5px; overflow: hidden;">
+              <div id="enrol-progress" style="width: 0%; height: 100%; background: var(--accent-green); transition: width 0.2s;"></div>
+            </div>
+            <p id="enrol-count-text" style="font-size: 0.85rem; margin-top: 6px; color: var(--accent-green);">0 / 15 fotos capturadas</p>
+          </div>
+
+          <button type="submit" id="btn-enrolar" class="btn" style="width: 100%;">Capturar Rostros y Guardar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- MÓDULO 3: AGREGAR FOTOS A USUARIO EXISTENTE -->
+    <section id="tab-agregar-fotos" class="tab-content">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h2 style="margin-bottom: 15px;">📸 Agregar Fotos a Usuario Existente</h2>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;">Refuerza el modelo de reconocimiento capturando fotos adicionales para un residente ya enrolado.</p>
+        <form onsubmit="agregarFotosUsuario(event)">
+          <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.85rem; color: var(--text-sub);">Seleccionar Usuario:</label>
+            <select id="select-usuario-fotos" required>
+              <option value="">Cargando lista de personas...</option>
+            </select>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
+            <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;">Capturando fotogramas de refuerzo desde la webcam...</p>
+            <div style="width: 100%; background: #1e293b; height: 10px; border-radius: 5px; overflow: hidden;">
+              <div id="add-progress" style="width: 0%; height: 100%; background: var(--accent-blue); transition: width 0.2s;"></div>
+            </div>
+            <p id="add-count-text" style="font-size: 0.85rem; margin-top: 6px; color: #93c5fd;">0 / 10 fotos capturadas</p>
+          </div>
+
+          <button type="submit" id="btn-agregar-fotos" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--accent-blue), #2563eb);">📸 Capturar Nuevas Fotos y Reentrenar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- MÓDULO 4 Y 5: USUARIOS ENROLADOS (GESTIÓN, BORRAR, LISTA NEGRA) -->
+    <section id="tab-usuarios" class="tab-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h2>👥 Usuarios Enrolados (Gestión Completa)</h2>
+          <button onclick="cargarTablaUsuarios()" class="btn btn-secondary" style="font-size: 0.85rem;">🔄 Actualizar Lista</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.05); color: #6ee7b7; border-bottom: 1px solid var(--border-card);">
+                <th style="padding: 10px;">ID</th>
+                <th style="padding: 10px;">Nombre</th>
+                <th style="padding: 10px;">Depto</th>
+                <th style="padding: 10px;">Categoría</th>
+                <th style="padding: 10px;">PIN</th>
+                <th style="padding: 10px;">WhatsApp</th>
+                <th style="padding: 10px;">Fotos</th>
+                <th style="padding: 10px;">Lista Negra</th>
+                <th style="padding: 10px; text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios-body">
+              <tr><td colspan="9" style="padding: 15px; text-align: center; color: var(--text-sub);">Cargando personas...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 8: ASISTENTE ADMINISTRATIVO & IA -->
+    <section id="tab-admin" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom: 15px;">🤖 Asistente de Seguridad & Consultas IA</h2>
+        <form onsubmit="preguntarIA(event)" style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <input type="text" id="admin-question" placeholder="Pregunta algo (ej. ¿Cuántos accesos hubo hoy?, ¿quién entró último?, resumen...)" required>
+          <button type="submit" class="btn">Consultar IA</button>
+        </form>
+        <div id="admin-ai-answer" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-green); padding: 15px; border-radius: 12px; color: #a7f3d0; margin-bottom: 20px;">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="card">
+          <h3 style="margin-bottom: 12px;">⚠️ Alertas de Seguridad Recientes</h3>
+          <ul id="alertas-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+            <li style="color: var(--text-sub);">Cargando alertas...</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3>👥 Personas Enroladas</h3>
+            <button onclick="sincronizarDrive()" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">☁️ Respaldar en Drive</button>
+          </div>
+          <ul id="personas-list" style="list-style: none; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+            <li style="color: var(--text-sub);">Cargando lista...</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 7: CONFIGURACIÓN DEL SISTEMA -->
+    <section id="tab-config" class="tab-content">
+      <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <h2 style="margin-bottom: 20px;">⚙️ Configuración del Sistema</h2>
+        <form onsubmit="guardarConfiguracion(event)" style="display: flex; flex-direction: column; gap: 18px;">
+          
+          <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
+            <h3 style="font-size: 1rem; color: #6ee7b7; margin-bottom: 12px;">🎯 Reconocimiento Facial & Puerta</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Umbral Confianza LBPH (%):</label>
+                <input type="number" id="cfg-umbral" min="0" max="100" step="1" required>
+              </div>
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Duración Apertura (ms):</label>
+                <input type="number" id="cfg-duracion-puerta" min="1000" step="500" required>
+              </div>
+            </div>
+            <div>
+              <label style="color: var(--text-sub); font-size: 0.85rem;">Fotos por Enrolamiento:</label>
+              <input type="number" id="cfg-fotos-enrolamiento" min="5" max="50" step="1" required>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
+            <h3 style="font-size: 1rem; color: #93c5fd; margin-bottom: 12px;">🤖 IA Generativa (Ollama / Gemini)</h3>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <input type="checkbox" id="cfg-usar-ia" style="width: 20px; height: 20px; cursor: pointer;">
+              <label for="cfg-usar-ia" style="font-weight: 600; cursor: pointer;">Habilitar IA Generativa</label>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Proveedor de IA:</label>
+                <select id="cfg-ia-provider">
+                  <option value="ollama">Ollama (IA Local)</option>
+                  <option value="gemini">Google Gemini API</option>
+                  <option value="auto">Automático (Gemini / Ollama)</option>
+                </select>
+              </div>
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Modelo Ollama:</label>
+                <input type="text" id="cfg-ollama-model" placeholder="mistral">
+              </div>
+            </div>
+
+            <div>
+              <label style="color: var(--text-sub); font-size: 0.85rem;">Google Gemini API Key:</label>
+              <input type="password" id="cfg-gemini-key" placeholder="AIzaSy...">
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
+            <h3 style="font-size: 1rem; color: #f59e0b; margin-bottom: 12px;">☁️ Respaldo en Google Drive</h3>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <input type="checkbox" id="cfg-sincronizar-drive" style="width: 20px; height: 20px; cursor: pointer;">
+              <label for="cfg-sincronizar-drive" style="font-weight: 600; cursor: pointer;">Activar Sincronización Automática</label>
+            </div>
+            <div>
+              <label style="color: var(--text-sub); font-size: 0.85rem;">Ruta de Google Drive en PC:</label>
+              <input type="text" id="cfg-drive-dir" placeholder="G:\Mi unidad\Proyecto\sistema_acceso_facial">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-guardar-cfg" class="btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar Cambios</button>
+        </form>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL ANIMADO DE APERTURA DE PUERTA -->
+  <div id="door-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">🔓 CERRADURA DESTRABADA - RELÉ ACTIVO</div>
+      <canvas id="door-canvas" width="500" height="220"></canvas>
+      <div class="modal-timer">
+        ⏱️ Cierre automático en: <span id="modal-timer-sec">6</span>s
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL WHATSAPP PARA AUTORIZACIÓN DE VISITAS -->
+  <div id="wa-modal" class="modal-overlay">
+    <div class="card" style="width: 90%; max-width: 480px; text-align: center; border: 1px solid #25D366; box-shadow: 0 0 30px rgba(37,211,102,0.3);">
+      <h3 style="color: #25D366; margin-bottom: 10px;">📱 Solicitar Ingreso por WhatsApp</h3>
+      <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 15px;">Enviar mensaje al residente para autorizar o rechazar la visita:</p>
+      
+      <div id="wa-contactos-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+        <!-- Contactos generados dinámicamente -->
+      </div>
+
+      <button onclick="cerrarWaModal()" class="btn btn-secondary" style="width: 100%;">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
