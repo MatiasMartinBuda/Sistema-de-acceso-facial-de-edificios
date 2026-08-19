@@ -637,6 +637,27 @@ async function preguntarIA(e) {
   }
 }
 
+function descargarBackupZip() {
+  window.location.href = "/api/backup/export";
+}
+
+async function probarEnvioCorreo() {
+  const email = prompt("Ingresá la dirección de correo electrónico donde enviar el email de prueba:", "ejemplo@gmail.com");
+  if (!email) return;
+
+  try {
+    const res = await fetch("/api/config/test-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    alert(data.mensaje);
+  } catch (err) {
+    alert("Error al enviar email de prueba: " + err);
+  }
+}
+
 async function cargarConfiguracion() {
   try {
     const res = await fetch("/api/config");
@@ -651,6 +672,14 @@ async function cargarConfiguracion() {
       document.getElementById("cfg-ia-provider").value = cfg.IA_PROVIDER || "ollama";
       document.getElementById("cfg-ollama-model").value = cfg.OLLAMA_MODEL || "mistral";
       document.getElementById("cfg-gemini-key").value = cfg.GEMINI_API_KEY || "";
+
+      if (document.getElementById("cfg-notificar-email")) {
+        document.getElementById("cfg-notificar-email").checked = cfg.NOTIFICAR_VISITAS_POR_EMAIL !== false;
+        document.getElementById("cfg-smtp-host").value = cfg.SMTP_HOST || "smtp.gmail.com";
+        document.getElementById("cfg-smtp-port").value = cfg.SMTP_PORT || 587;
+        document.getElementById("cfg-smtp-user").value = cfg.SMTP_USER || "";
+        document.getElementById("cfg-smtp-pass").value = cfg.SMTP_PASSWORD || "";
+      }
 
       document.getElementById("cfg-sincronizar-drive").checked = !!cfg.SINCRONIZAR_DRIVE;
       document.getElementById("cfg-drive-dir").value = cfg.GOOGLE_DRIVE_DIR || "";
@@ -672,6 +701,11 @@ async function guardarConfiguracion(e) {
     IA_PROVIDER: document.getElementById("cfg-ia-provider").value,
     OLLAMA_MODEL: document.getElementById("cfg-ollama-model").value.trim(),
     GEMINI_API_KEY: document.getElementById("cfg-gemini-key").value.trim(),
+    NOTIFICAR_VISITAS_POR_EMAIL: document.getElementById("cfg-notificar-email") ? document.getElementById("cfg-notificar-email").checked : true,
+    SMTP_HOST: document.getElementById("cfg-smtp-host") ? document.getElementById("cfg-smtp-host").value.trim() : "smtp.gmail.com",
+    SMTP_PORT: document.getElementById("cfg-smtp-port") ? parseInt(document.getElementById("cfg-smtp-port").value) : 587,
+    SMTP_USER: document.getElementById("cfg-smtp-user") ? document.getElementById("cfg-smtp-user").value.trim() : "",
+    SMTP_PASSWORD: document.getElementById("cfg-smtp-pass") ? document.getElementById("cfg-smtp-pass").value.trim() : "",
     SINCRONIZAR_DRIVE: document.getElementById("cfg-sincronizar-drive").checked,
     GOOGLE_DRIVE_DIR: document.getElementById("cfg-drive-dir").value.trim()
   };
@@ -691,3 +725,4 @@ async function guardarConfiguracion(e) {
     btn.textContent = "💾 Guardar Cambios";
   }
 }
+

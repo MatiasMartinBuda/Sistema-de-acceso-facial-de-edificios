@@ -312,16 +312,51 @@
             </div>
           </div>
 
+          <!-- Notificaciones por Correo Electrónico (SMTP) -->
           <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
-            <h3 style="font-size: 1rem; color: #f59e0b; margin-bottom: 12px;">☁️ Respaldo en Google Drive</h3>
+            <h3 style="font-size: 1rem; color: #ec4899; margin-bottom: 12px;">📧 Notificaciones por Correo a Propietarios</h3>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <input type="checkbox" id="cfg-notificar-email" style="width: 20px; height: 20px; cursor: pointer;">
+              <label for="cfg-notificar-email" style="font-weight: 600; cursor: pointer;">Enviar aviso por Email al Propietario en Visitas e Ingresos</label>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Servidor SMTP (Host):</label>
+                <input type="text" id="cfg-smtp-host" placeholder="smtp.gmail.com">
+              </div>
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Puerto SMTP:</label>
+                <input type="number" id="cfg-smtp-port" placeholder="587">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Usuario / Remitente Email:</label>
+                <input type="email" id="cfg-smtp-user" placeholder="tu-correo@gmail.com">
+              </div>
+              <div>
+                <label style="color: var(--text-sub); font-size: 0.85rem;">Contraseña de Aplicación SMTP:</label>
+                <input type="password" id="cfg-smtp-pass" placeholder="Contraseña de aplicación de Gmail">
+              </div>
+            </div>
+
+            <button type="button" onclick="probarEnvioCorreo()" class="btn btn-secondary" style="font-size: 0.85rem; width: 100%;">📧 Probar Envío de Correo Electrónico</button>
+          </div>
+
+          <!-- Respaldo Google Drive & Copia de Seguridad ZIP -->
+          <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;">
+            <h3 style="font-size: 1rem; color: #f59e0b; margin-bottom: 12px;">☁️ Respaldo de Datos y Copia de Seguridad</h3>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
               <input type="checkbox" id="cfg-sincronizar-drive" style="width: 20px; height: 20px; cursor: pointer;">
-              <label for="cfg-sincronizar-drive" style="font-weight: 600; cursor: pointer;">Activar Sincronización Automática</label>
+              <label for="cfg-sincronizar-drive" style="font-weight: 600; cursor: pointer;">Activar Sincronización Automática con Google Drive</label>
             </div>
-            <div>
+            <div style="margin-bottom: 12px;">
               <label style="color: var(--text-sub); font-size: 0.85rem;">Ruta de Google Drive en PC:</label>
               <input type="text" id="cfg-drive-dir" placeholder="G:\Mi unidad\Proyecto\sistema_acceso_facial">
             </div>
+            <button type="button" onclick="descargarBackupZip()" class="btn btn-secondary" style="font-size: 0.85rem; width: 100%;">📦 Descargar Copia de Seguridad Completa (.zip)</button>
           </div>
 
           <button type="submit" id="btn-guardar-cfg" class="btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar Cambios</button>

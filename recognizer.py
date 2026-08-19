@@ -117,11 +117,16 @@ class FaceEngine:
         """Devuelve (label, score_0_100). Score alto = mejor coincidencia."""
         if not self._model_cargado:
             return None, 0.0
-        rostro = cv2.resize(rostro_gray_recortado, (200, 200))
-        label, confidence = self.recognizer.predict(rostro)
-        # LBPH: confidence es una distancia (menor = mejor). La invertimos a score 0-100.
-        score = max(0.0, (1 - min(confidence, config.LBPH_CONFIDENCE_MAX) / config.LBPH_CONFIDENCE_MAX) * 100)
-        return label, round(score, 1)
+        try:
+            rostro = cv2.resize(rostro_gray_recortado, (200, 200))
+            label, confidence = self.recognizer.predict(rostro)
+            # LBPH: confidence es una distancia (menor = mejor). La invertimos a score 0-100.
+            score = max(0.0, (1 - min(confidence, config.LBPH_CONFIDENCE_MAX) / config.LBPH_CONFIDENCE_MAX) * 100)
+            return label, round(score, 1)
+        except Exception as e:
+            print(f"[LBPH Predict Warning] {e}")
+            return None, 0.0
+
 
     def entrenar_modelo(self):
         """Alias para entrenar_desde_disco."""
