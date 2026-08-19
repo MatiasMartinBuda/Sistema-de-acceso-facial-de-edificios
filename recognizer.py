@@ -182,6 +182,7 @@ class FaceEngine:
         return {
             "estado": "buscando",
             "es_residente": False,
+            "rostro_detectado": True,
             "nombre": "",
             "depto": "",
             "score": score,
@@ -189,6 +190,7 @@ class FaceEngine:
             "camino": "B",
             "mensaje": "Rostro no reconocido o confianza insuficiente"
         }
+
 
 
 

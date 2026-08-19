@@ -153,6 +153,8 @@ function capturarFrameBase64() {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
+let ultimaBienvenidaMs = 0;
+
 async function capturarYReconocer() {
   if (doorActive) return;
 
@@ -168,6 +170,19 @@ async function capturarYReconocer() {
     const data = await res.json();
 
     actualizarBadge(data);
+
+    // Saludar y preguntar si es propietario o visita cuando se detecta un rostro desconocido
+    const ahora = Date.now();
+    if (data.rostro_detectado && !data.es_residente && (ahora - ultimaBienvenidaMs > 15000)) {
+      ultimaBienvenidaMs = ahora;
+      const saludo = "¡Hola! Bienvenido al edificio. ¿Sos propietario del departamento o venís de visita?";
+      const logs = document.getElementById("chat-logs");
+      if (logs) {
+        logs.innerHTML += `<div class="chat-msg bot">${saludo}</div>`;
+        logs.scrollTop = logs.scrollHeight;
+      }
+      hablarVozWeb(saludo);
+    }
 
     if (data.estado === "permitido" && !doorActive) {
       abrirPuertaModal(data.nombre, data.depto);
@@ -245,6 +260,16 @@ async function enrolarPersona(e) {
     });
     const data = await res.json();
     alert(data.mensaje);
+
+    // Vaciar los campos para el próximo enrolamiento
+    document.getElementById("enrol-nombre").value = "";
+    document.getElementById("enrol-apellido").value = "";
+    document.getElementById("enrol-depto").value = "";
+    document.getElementById("enrol-pin").value = "";
+    document.getElementById("enrol-telefono").value = "";
+    document.getElementById("enrol-email").value = "";
+    document.getElementById("enrol-categoria").value = "propietario";
+
     cargarAdminStats();
     cargarTablaUsuarios();
   } catch (err) {
@@ -256,6 +281,7 @@ async function enrolarPersona(e) {
     textCount.textContent = "0 / 15 fotos capturadas";
   }
 }
+
 
 // 3. MÓDULO AGREGAR FOTOS A USUARIO EXISTENTE
 async function cargarComboUsuariosFotos() {

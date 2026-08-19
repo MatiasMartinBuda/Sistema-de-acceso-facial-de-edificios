@@ -146,6 +146,15 @@ def api_auth_login(req: LoginRequest):
     return {"exito": False, "mensaje": "Usuario o contraseña incorrectos."}
 
 
+def obtener_emails_notificacion(depto: str) -> List[str]:
+    emails = database.emails_por_depto(depto)
+    if not emails:
+        smtp_user = settings.get("SMTP_USER")
+        if smtp_user and "@" in smtp_user and not smtp_user.startswith("tu_correo"):
+            emails = [smtp_user]
+    return emails
+
+
 @app.post("/api/reconocer")
 def api_reconocer(req: RecognerRequest):
     """Procesa un fotograma de la webcam web y evalúa reconocimiento + liveness."""
@@ -159,6 +168,7 @@ def api_reconocer(req: RecognerRequest):
         res_dict = {
             "estado": resultado.get("estado", "buscando"),
             "es_residente": resultado.get("es_residente", False),
+            "rostro_detectado": resultado.get("rostro_detectado", False),
             "nombre": resultado.get("nombre", ""),
             "depto": resultado.get("depto", ""),
             "score": round(resultado.get("score", 0), 1),
@@ -178,7 +188,7 @@ def api_reconocer(req: RecognerRequest):
             )
             # Notificar al propietario por correo electrónico
             if res_dict.get("depto"):
-                emails = database.emails_por_depto(res_dict["depto"])
+                emails = obtener_emails_notificacion(res_dict["depto"])
                 if emails:
                     notificaciones.enviar_notificacion_ingreso(
                         res_dict["depto"], emails, res_dict["nombre"], "Reconocimiento Facial (Tótem Web)"
@@ -187,6 +197,7 @@ def api_reconocer(req: RecognerRequest):
         return res_dict
     except Exception as e:
         return {"estado": "error", "mensaje": str(e)}
+
 
 
 @app.post("/api/enrolar")
@@ -275,11 +286,12 @@ def api_chat(req: ChatRequest):
         depto = evento.get("depto")
         nombre_visita = evento.get("nombre", "Visita")
         if depto:
-            emails = database.emails_por_depto(depto)
+            emails = obtener_emails_notificacion(depto)
             if emails:
                 notificaciones.enviar_notificacion_visita(
                     depto, emails, detalle=f"La visita '{nombre_visita}' está en la puerta solicitando acceso a tu unidad."
                 )
+
 
     return {
         "respuesta": msg_bot,
@@ -472,11 +484,12 @@ def api_visita_whatsapp(req: VisitaWhatsappRequest):
             })
 
         # También notificar por correo electrónico al propietario
-        emails = database.emails_por_depto(req.depto)
+        emails = obtener_emails_notificacion(req.depto)
         if emails:
             notificaciones.enviar_notificacion_visita(
                 req.depto, emails, detalle=f"La visita '{req.nombre_visita}' solicita ingresar a tu departamento."
             )
+
 
         return {"exito": True, "contactos": resultados}
     except Exception as e:
