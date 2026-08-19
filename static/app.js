@@ -112,6 +112,23 @@ function logoutApp() {
   document.getElementById("auth-overlay").classList.add("active");
 }
 
+function limpiarFormularioEnrolar() {
+  const form = document.getElementById("form-enrolar");
+  if (form) form.reset();
+
+  if (document.getElementById("enrol-nombre")) {
+    document.getElementById("enrol-nombre").value = "";
+    document.getElementById("enrol-apellido").value = "";
+    document.getElementById("enrol-depto").value = "";
+    document.getElementById("enrol-pin").value = "";
+    document.getElementById("enrol-telefono").value = "";
+    document.getElementById("enrol-email").value = "";
+    document.getElementById("enrol-categoria").value = "propietario";
+    document.getElementById("enrol-progress").style.width = "0%";
+    document.getElementById("enrol-count-text").textContent = "0 / 15 fotos capturadas";
+  }
+}
+
 // --- NAVEGACIÓN ENTRE LAS 8 OPCIONES ---
 
 function switchTab(tabId, btn) {
@@ -121,11 +138,13 @@ function switchTab(tabId, btn) {
   document.getElementById(tabId).classList.add("active");
   if (btn) btn.classList.add("active");
 
+  if (tabId === "tab-enrolar") limpiarFormularioEnrolar();
   if (tabId === "tab-config") cargarConfiguracion();
   if (tabId === "tab-agregar-fotos") cargarComboUsuariosFotos();
   if (tabId === "tab-usuarios") cargarTablaUsuarios();
   if (tabId === "tab-admin") cargarAdminStats();
 }
+
 
 let isProcessingFrame = false;
 let ultimaBienvenidaMs = 0;
@@ -269,16 +288,11 @@ async function enrolarPersona(e) {
     alert(data.mensaje);
 
     // Vaciar los campos para el próximo enrolamiento
-    document.getElementById("enrol-nombre").value = "";
-    document.getElementById("enrol-apellido").value = "";
-    document.getElementById("enrol-depto").value = "";
-    document.getElementById("enrol-pin").value = "";
-    document.getElementById("enrol-telefono").value = "";
-    document.getElementById("enrol-email").value = "";
-    document.getElementById("enrol-categoria").value = "propietario";
+    limpiarFormularioEnrolar();
 
     cargarAdminStats();
     cargarTablaUsuarios();
+
   } catch (err) {
     alert("Error al enrolar persona: " + err);
   } finally {

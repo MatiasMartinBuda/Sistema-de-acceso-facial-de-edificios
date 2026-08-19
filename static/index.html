@@ -115,39 +115,40 @@
     <section id="tab-enrolar" class="tab-content">
       <div class="card" style="max-width: 650px; margin: 0 auto;">
         <h2 style="margin-bottom: 15px;">👤 Registrar Nueva Persona</h2>
-        <form onsubmit="enrolarPersona(event)">
+        <form id="form-enrolar" onsubmit="enrolarPersona(event)" autocomplete="off">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Nombre:</label>
-              <input type="text" id="enrol-nombre" placeholder="Juan" required>
+              <input type="text" id="enrol-nombre" placeholder="Juan" autocomplete="off" required>
             </div>
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Apellido:</label>
-              <input type="text" id="enrol-apellido" placeholder="Pérez" required>
+              <input type="text" id="enrol-apellido" placeholder="Pérez" autocomplete="off" required>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Departamento:</label>
-              <input type="text" id="enrol-depto" placeholder="4B" required>
+              <input type="text" id="enrol-depto" placeholder="4B" autocomplete="off" required>
             </div>
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Código PIN:</label>
-              <input type="password" id="enrol-pin" placeholder="1234">
+              <input type="password" id="enrol-pin" placeholder="1234" autocomplete="new-password">
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Celular / WhatsApp:</label>
-              <input type="text" id="enrol-telefono" placeholder="+5491112345678">
+              <input type="text" id="enrol-telefono" placeholder="+5491112345678" autocomplete="off">
             </div>
             <div>
               <label style="font-size: 0.85rem; color: var(--text-sub);">Email:</label>
-              <input type="email" id="enrol-email" placeholder="correo@ejemplo.com">
+              <input type="email" id="enrol-email" placeholder="correo@ejemplo.com" autocomplete="off">
             </div>
           </div>
+
 
           <div style="margin-bottom: 15px;">
             <label style="font-size: 0.85rem; color: var(--text-sub);">Categoría:</label>
