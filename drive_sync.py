@@ -29,8 +29,10 @@ def realizar_respaldo_drive():
         if os.path.exists(config.DB_PATH):
             shutil.copy2(config.DB_PATH, os.path.join(dest_db_dir, "acceso.sqlite3"))
         
-        if os.path.exists(config.SETTINGS_PATH):
-            shutil.copy2(config.SETTINGS_PATH, os.path.join(dest_db_dir, "settings.json"))
+        settings_file = getattr(config, "SETTINGS_PATH", os.path.join(config.DATA_DIR, "settings.json"))
+        if os.path.exists(settings_file):
+            shutil.copy2(settings_file, os.path.join(dest_db_dir, "settings.json"))
+
 
         # 2. Respaldar modelo LBPH
         if os.path.exists(config.MODELO_PATH):
@@ -88,8 +90,10 @@ def crear_backup_zip():
     with zipfile.ZipFile(mem_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
         if os.path.exists(config.DB_PATH):
             zf.write(config.DB_PATH, arcname="acceso.sqlite3")
-        if os.path.exists(config.SETTINGS_PATH):
-            zf.write(config.SETTINGS_PATH, arcname="settings.json")
+        settings_file = getattr(config, "SETTINGS_PATH", os.path.join(config.DATA_DIR, "settings.json"))
+        if os.path.exists(settings_file):
+            zf.write(settings_file, arcname="settings.json")
+
         if os.path.exists(config.MODELO_PATH):
             zf.write(config.MODELO_PATH, arcname="modelo_lbph.yml")
         

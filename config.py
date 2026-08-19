@@ -19,6 +19,8 @@ ROSTROS_DIR = os.path.join(DATA_DIR, "rostros")
 CAPTURAS_VISITAS_DIR = os.path.join(DATA_DIR, "capturas_visitas")
 MODELO_PATH = os.path.join(DATA_DIR, "modelo_lbph.yml")
 DB_PATH = os.path.join(DATA_DIR, "acceso.sqlite3")
+SETTINGS_PATH = os.path.join(DATA_DIR, "settings.json")
+
 
 # Si la carpeta de Google Drive existe en la PC, guardar reportes directamente allí
 if SINCRONIZAR_DRIVE and os.path.exists(os.path.dirname(GOOGLE_DRIVE_DIR)):
