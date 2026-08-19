@@ -504,10 +504,11 @@ def api_test_email(req: TestEmailRequest):
     """Prueba el envío de correo electrónico utilizando la configuración SMTP actual."""
     if not req.email.strip():
         return {"exito": False, "mensaje": "Ingresá una dirección de correo válida."}
-    ok = notificaciones.probar_envio_email(req.email.strip())
+    ok, msg = notificaciones.probar_envio_email(req.email.strip())
     if ok:
         return {"exito": True, "mensaje": f"Correo de prueba enviado con éxito a {req.email}."}
-    return {"exito": False, "mensaje": "No se pudo enviar el correo. Verificá las credenciales SMTP en la pestaña Configuración."}
+    return {"exito": False, "mensaje": f"No se pudo enviar el correo: {msg}"}
+
 
 
 @app.get("/api/backup/export")

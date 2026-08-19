@@ -19,39 +19,51 @@ import settings
 
 def enviar_notificacion_visita(depto, emails_destino, detalle=""):
     """Notifica a los propietarios/inquilinos de `depto` que hay una visita en la puerta."""
-    if not emails_destino:
-        print(f"[Notificaciones] Depto {depto} no tiene email cargado, no se notifica por correo.")
+    smtp_user = settings.get("SMTP_USER") or ""
+    
+    # Si no hay email de residente cargado, usar la dirección SMTP del administrador como destino
+    destinatarios = list(set([e.strip() for e in (emails_destino or []) if e and e.strip()]))
+    if not destinatarios and smtp_user and "@" in smtp_user:
+        destinatarios = [smtp_user.strip()]
+
+    if not destinatarios:
+        print(f"[Notificaciones] Depto {depto} no tiene email cargado ni usuario SMTP configurado.")
         return False
 
     asunto = f"🔔 Visita en la puerta - Depto {depto}"
     cuerpo = (
         f"Hola,\n\n"
-        f"Hay una visita en la puerta de acceso solicitando ingreso a tu unidad ({depto}).\n"
+        f"Hay una visita en la puerta de acceso solicitando ingreso a tu unidad (Depto {depto}).\n"
         f"{detalle}\n\n"
         f"Este es un mensaje automático del sistema de acceso inteligente del edificio."
     )
 
     # Disparar en segundo plano para no demorar la respuesta de la web
-    threading.Thread(target=_enviar_smtp, args=(emails_destino, asunto, cuerpo), daemon=True).start()
+    threading.Thread(target=_enviar_smtp, args=(destinatarios, asunto, cuerpo), daemon=True).start()
     return True
 
 
 def enviar_notificacion_ingreso(depto, emails_destino, nombre_persona, metodo, detalle=""):
     """Notifica al/los propietario(s) de `depto` que se concedió un ingreso."""
-    if not emails_destino:
+    smtp_user = settings.get("SMTP_USER") or ""
+    destinatarios = list(set([e.strip() for e in (emails_destino or []) if e and e.strip()]))
+    if not destinatarios and smtp_user and "@" in smtp_user:
+        destinatarios = [smtp_user.strip()]
+
+    if not destinatarios:
         return False
 
     asunto = f"✅ Acceso concedido - Depto {depto}"
     cuerpo = (
         f"Hola,\n\n"
-        f"Se registró un ingreso autorizado a tu unidad ({depto}).\n"
+        f"Se registró un ingreso autorizado a tu unidad (Depto {depto}).\n"
         f"Persona: {nombre_persona}\n"
         f"Método: {metodo}\n"
         f"{detalle}\n\n"
         f"Este es un mensaje automático del sistema de acceso inteligente del edificio."
     )
 
-    threading.Thread(target=_enviar_smtp, args=(emails_destino, asunto, cuerpo), daemon=True).start()
+    threading.Thread(target=_enviar_smtp, args=(destinatarios, asunto, cuerpo), daemon=True).start()
     return True
 
 
@@ -74,8 +86,9 @@ def _enviar_smtp(destinatarios, asunto, cuerpo):
     smtp_from_name = settings.get("SMTP_FROM_NAME") or "Sistema de Acceso - Edificio"
 
     if not smtp_user or not smtp_password:
-        print("[Notificaciones] No se configuró usuario o contraseña SMTP. Omitiendo envío de correo.")
-        return False
+        msg_err = "No se configuró usuario o contraseña SMTP."
+        print(f"[Notificaciones] {msg_err}")
+        return False, msg_err
 
     try:
         msg = MIMEText(cuerpo, "plain", "utf-8")
@@ -84,13 +97,21 @@ def _enviar_smtp(destinatarios, asunto, cuerpo):
         msg["To"] = ", ".join(destinatarios)
 
         contexto = ssl.create_default_context()
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            server.starttls(context=contexto)
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, destinatarios, msg.as_string())
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=contexto, timeout=12) as server:
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_user, destinatarios, msg.as_string())
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=12) as server:
+                server.starttls(context=contexto)
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_user, destinatarios, msg.as_string())
+
         print(f"[Notificaciones] Email enviado con éxito a: {', '.join(destinatarios)}")
-        return True
+        return True, "Email enviado con éxito"
     except Exception as e:
-        print(f"[Notificaciones Error] No se pudo enviar el correo: {e}")
-        return False
+        msg_err = f"Error SMTP ({e})"
+        print(f"[Notificaciones Error] {msg_err}")
+        return False, msg_err
+
 

@@ -127,7 +127,10 @@ function switchTab(tabId, btn) {
   if (tabId === "tab-admin") cargarAdminStats();
 }
 
-// 1. INICIALIZAR CÁMARA Y RECONOCIMIENTO EN VIVO
+let isProcessingFrame = false;
+let ultimaBienvenidaMs = 0;
+
+// 1. INICIALIZAR CÁMARA Y RECONOCIMIENTO EN VIVO (INTERVALO DE 900MS CON FRENO)
 async function initWebcam() {
   const video = document.getElementById("webcam-video");
   try {
@@ -135,7 +138,8 @@ async function initWebcam() {
       video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }
     });
     video.srcObject = stream;
-    recogInterval = setInterval(capturarYReconocer, 500);
+    if (recogInterval) clearInterval(recogInterval);
+    recogInterval = setInterval(capturarYReconocer, 900);
   } catch (err) {
     console.error("Error webcam:", err);
   }
@@ -153,15 +157,14 @@ function capturarFrameBase64() {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-let ultimaBienvenidaMs = 0;
-
 async function capturarYReconocer() {
-  if (doorActive) return;
+  if (doorActive || isProcessingFrame) return;
 
-  const b64 = capturarFrameBase64();
-  if (!b64) return;
-
+  isProcessingFrame = true;
   try {
+    const b64 = capturarFrameBase64();
+    if (!b64) return;
+
     const res = await fetch("/api/reconocer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -187,8 +190,12 @@ async function capturarYReconocer() {
     if (data.estado === "permitido" && !doorActive) {
       abrirPuertaModal(data.nombre, data.depto);
     }
-  } catch (err) {}
+  } catch (err) {
+  } finally {
+    isProcessingFrame = false;
+  }
 }
+
 
 function actualizarBadge(data) {
   const badge = document.getElementById("status-badge");
